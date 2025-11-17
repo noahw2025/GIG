@@ -1,0 +1,383 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ---------- GLOBAL ---------- */
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #3a86ff, #8338ec);
+  color: #0b132b;
+}
+
+/* Center only auth pages (login / signup) */
+.auth {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- AUTH FORMS ---------- */
+.container {
+  width: 100%;
+  padding: 20px;
+}
+
+.form-box {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  padding: 28px;
+  text-align: center;
+}
+.form-box h1 {
+  color: #3a86ff;
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.form-box h2 {
+  color: #222;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+.form-box input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin: 8px 0 12px;
+  outline: none;
+}
+.form-box button {
+  width: 100%;
+  padding: 12px 14px;
+  background: #3a86ff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.05s ease, opacity 0.2s ease;
+}
+.form-box button:active {
+  transform: translateY(1px);
+  opacity: 0.9;
+}
+.form-box p {
+  margin-top: 12px;
+}
+.form-box a {
+  color: #3a86ff;
+  text-decoration: none;
+}
+
+/* ---------- NAVBAR ---------- */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  color: #3a86ff;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+.navbar h1 {
+  font-size: 28px;
+}
+.navbar nav {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.navbar nav a {
+  color: #3a86ff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+.navbar nav a:hover {
+  background: #eef5ff;
+}
+
+.dashboard-container {
+  margin-top: 84px;
+  padding: 20px 16px;
+}
+
+/* ---------- SECTIONS ---------- */
+.page-section {
+  margin: 0 auto;
+  max-width: 1100px;
+}
+.page-section h2 {
+  color: #111;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* ---------- CONCERT GRID ---------- */
+.concert-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin: 20px auto;
+  max-width: 1100px;
+  padding: 0 8px;
+}
+@media (min-width: 700px) {
+  .concert-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .concert-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.concert-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  position: relative;
+}
+.concert-card h3 {
+  margin-bottom: 6px;
+  color: #111;
+}
+.concert-card p {
+  margin-bottom: 14px;
+  color: #444;
+}
+.concert-card button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  background: #3a86ff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+/* ---------- FAVORITES LIST ---------- */
+#favoritesList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 1100px;
+  margin: 20px auto 0;
+  padding: 0 16px;
+}
+
+/* Keep original pill look, just add space for button on right */
+#favoritesList .concert-card {
+  position: relative;
+  text-align: center;
+  padding: 18px 110px 18px 18px; /* extra right padding for button */
+}
+
+/* Small Remove button on the far right, not affecting text flow */
+#favoritesList .remove-btn {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.05s ease;
+}
+#favoritesList .remove-btn:hover {
+  background: #dc2626;
+}
+#favoritesList .remove-btn:active {
+  transform: translateY(-50%) translateY(1px);
+}
+
+/* ---------- PROFILE SECTION ---------- */
+.profile-section {
+  margin: 40px auto;
+  max-width: 900px;
+}
+.profile-section h2 {
+  color: #111;
+  text-align: center;
+  margin: 10px 0 24px;
+}
+.profile-section form {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+.profile-section input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+}
+.profile-section button {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #3a86ff;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- UTIL ---------- */
+.hidden {
+  display: none;
+}
+
+/* ---------- BROWSE CONTROLS (Search + Filter) ---------- */
+.browse-controls {
+  max-width: 1100px;
+  margin: 0 auto 12px;
+  padding: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.browse-controls input {
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  outline: none;
+}
+
+.browse-controls select {
+  min-width: 180px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.browse-message {
+  text-align: center;
+  font-size: 14px;
+  color: #1f2933;
+  margin-bottom: 8px;
+}
+
+/* ---------- FAVORITES + REVIEWS ---------- */
+#favoritesList .concert-card {
+  position: relative;
+  text-align: left;
+  padding: 18px 110px 14px 18px; /* extra right padding so text doesn't sit under the button */
+}
+
+/* keep text left-aligned */
+.favorite-main {
+  display: block;
+}
+
+/* make remove button small and on the top-right corner */
+#favoritesList .remove-btn {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto;          /* override global full-width button */
+  min-width: unset;
+}
+
+#favoritesList .remove-btn:hover {
+  background: #dc2626;
+}
+
+/* Reviews section under each favorite */
+.review-controls {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.review-controls label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.review-controls select {
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.review-controls input {
+  flex: 1;
+  min-width: 140px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.review-summary {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #555;
+}
+
+
+.review-save-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  background: #3a86ff;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.review-save-btn:hover {
+  opacity: 0.9;
+}
+
