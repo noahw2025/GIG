@@ -285,189 +285,247 @@ async function addToFavorites(concertId, artist) {
     alert(`${artist} added to your favorites!`);
   }
 }
+// =========================
+// FAVORITES + REVIEWS
+// =========================
 
-async function loadFavorites() {
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData?.user;
+// Call this when you need to show the Favorites section
+// e.g., from showSection('favorites') or on initial dashboard load.
+async function loadFavoritesSection() {
+  const user = await getCurrentUser();
   if (!user) return;
 
-  const favDiv = document.getElementById("favoritesList");
-  favDiv.innerHTML = "";
+  const favoritesContainer = document.getElementById('favoritesList');
+  if (!favoritesContainer) return;
 
-  const { data: favorites, error } = await supabase
-    .from("favorites")
-    .select("id, concert_id, concerts(artist, location, date)")
-    .eq("user_id", user.id)
-    .order("id", { ascending: true });
+  favoritesContainer.innerHTML = '<p>Loading favorites...</p>';
 
-  if (error) {
-    favDiv.innerHTML = `<p>Error loading favorites: ${error.message}</p>`;
+  // 1) Get favorites with joined concert info
+  const { data: favorites, error: favError } = await supabase
+    .from('favorites')
+    .select(`
+      id,
+      concert_id,
+      concerts (
+        artist,
+        location,
+        date
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true });
+
+  if (favError) {
+    console.error('Error loading favorites:', favError);
+    favoritesContainer.innerHTML = '<p>Could not load favorites.</p>';
     return;
   }
 
   if (!favorites || favorites.length === 0) {
-    favDiv.innerHTML = "<p>No favorites yet.</p>";
+    favoritesContainer.innerHTML = '<p>You have no favorites yet.</p>';
     return;
   }
 
-  // ---- Fetch existing reviews for these concerts ----
-  const concertIds = favorites.map((f) => f.concert_id);
+  // 2) Collect concert IDs for this user's favorites
+  const concertIds = [...new Set(favorites.map(f => f.concert_id))];
+
+  // 3) Fetch this user's reviews for those concerts
   let reviewsByConcert = {};
-
   if (concertIds.length > 0) {
-    const { data: reviews, error: revError } = await supabase
-      .from("reviews")
-      .select("concert_id, rating, comment")
-      .eq("user_id", user.id)
-      .in("concert_id", concertIds);
+    const { data: reviews, error: reviewError } = await supabase
+      .from('reviews')
+      .select('id, concert_id, rating, comment')
+      .eq('user_id', user.id)
+      .in('concert_id', concertIds);
 
-    if (!revError && reviews) {
-      reviews.forEach((r) => {
+    if (reviewError) {
+      console.error('Error loading reviews:', reviewError);
+    } else if (reviews) {
+      reviews.forEach(r => {
         reviewsByConcert[r.concert_id] = r;
       });
     }
   }
 
-  // ---- Render favorites with review summary + controls ----
-  favorites.forEach((fav) => {
-    const c = fav.concerts;
-    const review = reviewsByConcert[fav.concert_id];
+  // 4) Render favorites with prefilled review controls
+  favoritesContainer.innerHTML = '';
+  favorites.forEach(fav => {
+    const concert = fav.concerts;
+    const concertId = fav.concert_id;
+    const review = reviewsByConcert[concertId] || null;
 
-    const ratingValue = review ? review.rating : 5;
-    const commentValue = review ? review.comment || "" : "";
-    const commentEscaped = commentValue.replace(/"/g, "&quot;");
+    const card = document.createElement('div');
+    card.className = 'concert-card favorite-card';
 
-    const reviewSummaryText = review
-      ? `Your review: ${review.rating} ★${
-          review.comment ? " – " + review.comment : ""
-        }`
-      : "You haven't left a review for this concert yet.";
+    // Safely format date
+    let dateStr = '';
+    if (concert.date) {
+      try {
+        dateStr = new Date(concert.date).toISOString().split('T')[0];
+      } catch {
+        dateStr = concert.date;
+      }
+    }
 
-    const div = document.createElement("div");
-    div.classList.add("concert-card");
-    div.innerHTML = `
-      <div class="favorite-main">
-        <span><strong>${c.artist}</strong> — ${c.location} (${c.date})</span>
-        <button class="remove-btn" onclick="removeFavorite('${fav.id}')">× Remove</button>
-      </div>
+    // Build rating options with the existing rating selected if present
+    const currentRating = review && review.rating ? review.rating : 5;
+    const ratingOptions = [1, 2, 3, 4, 5]
+      .map(
+        (r) => `<option value="${r}" ${r === currentRating ? 'selected' : ''}>${r}</option>`
+      )
+      .join('');
 
-      <div class="review-summary">
-        ${reviewSummaryText}
-      </div>
+    const commentText = review && review.comment ? review.comment : '';
 
-      <div class="review-controls">
-        <label>
-          Your rating:
-          <select id="rating-${fav.concert_id}">
-            <option value="5" ${ratingValue === 5 ? "selected" : ""}>5 ★</option>
-            <option value="4" ${ratingValue === 4 ? "selected" : ""}>4 ★</option>
-            <option value="3" ${ratingValue === 3 ? "selected" : ""}>3 ★</option>
-            <option value="2" ${ratingValue === 2 ? "selected" : ""}>2 ★</option>
-            <option value="1" ${ratingValue === 1 ? "selected" : ""}>1 ★</option>
-          </select>
-        </label>
-        <input
-          type="text"
-          id="comment-${fav.concert_id}"
-          placeholder="Add a short review..."
-          value="${commentEscaped}"
-        />
+    const statusText = review
+      ? 'Your review is saved.'
+      : '';
+
+    card.innerHTML = `
+      <div class="favorite-top-row">
+        <div class="favorite-title">
+          <strong>${concert.artist}</strong> — ${concert.location} (${dateStr})
+        </div>
         <button
-          type="button"
-          class="review-save-btn"
-          onclick="submitReview(${fav.concert_id})"
+          class="remove-favorite-btn"
+          data-favorite-id="${fav.id}"
         >
-          Save
+          × Remove
         </button>
       </div>
+
+      <div class="favorite-review-block">
+        <label class="favorite-review-label">
+          Your rating:
+          <select
+            class="review-rating-select"
+            data-concert-id="${concertId}"
+          >
+            ${ratingOptions}
+          </select>
+        </label>
+
+        <textarea
+          class="review-comment-input"
+          data-concert-id="${concertId}"
+          placeholder="Add a short review..."
+        >${commentText}</textarea>
+
+        <div class="favorite-review-footer">
+          <button
+            class="save-review-btn"
+            data-concert-id="${concertId}"
+          >
+            Save Review
+          </button>
+          <small
+            class="review-status-text"
+            data-concert-id="${concertId}"
+          >
+            ${statusText}
+          </small>
+        </div>
+      </div>
     `;
-    favDiv.appendChild(div);
+
+    favoritesContainer.appendChild(card);
+  });
+
+  // Wire up remove + save-review buttons
+  favoritesContainer.querySelectorAll('.remove-favorite-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const favId = e.currentTarget.getAttribute('data-favorite-id');
+      await removeFavorite(favId);
+      await loadFavoritesSection(); // refresh list
+    });
+  });
+
+  favoritesContainer.querySelectorAll('.save-review-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const concertId = parseInt(
+        e.currentTarget.getAttribute('data-concert-id'),
+        10
+      );
+      await saveReviewForConcert(concertId);
+    });
   });
 }
 
-async function removeFavorite(favoriteId) {
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData?.user;
-  if (!user) {
-    alert("Please log in first.");
+/**
+ * Insert or update the review for this user + concert,
+ * then update the little status text in the card.
+ */
+async function saveReviewForConcert(concertId) {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  const ratingEl = document.querySelector(
+    `.review-rating-select[data-concert-id="${concertId}"]`
+  );
+  const commentEl = document.querySelector(
+    `.review-comment-input[data-concert-id="${concertId}"]`
+  );
+  const statusEl = document.querySelector(
+    `.review-status-text[data-concert-id="${concertId}"]`
+  );
+
+  if (!ratingEl || !commentEl || !statusEl) return;
+
+  const rating = parseInt(ratingEl.value, 10) || null;
+  const comment = commentEl.value.trim();
+
+  if (!rating && !comment) {
+    statusEl.textContent = 'Nothing to save.';
     return;
   }
 
-  const { error } = await supabase
-    .from("favorites")
-    .delete()
-    .eq("id", favoriteId)
-    .eq("user_id", user.id);
-
-  if (error) {
-    alert("Error removing favorite: " + error.message);
-    return;
-  }
-
-  await loadFavorites();
-}
-
-// ====== Reviews (per favorite) ======
-async function submitReview(concertId) {
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData?.user;
-  if (!user) {
-    alert("Please log in first.");
-    return;
-  }
-
-  const ratingSelect = document.getElementById(`rating-${concertId}`);
-  const commentInput = document.getElementById(`comment-${concertId}`);
-
-  if (!ratingSelect || !commentInput) {
-    alert("Review controls not found.");
-    return;
-  }
-
-  const rating = parseInt(ratingSelect.value, 10);
-  const comment = commentInput.value.trim();
-
-  if (!rating || rating < 1 || rating > 5) {
-    alert("Please choose a rating between 1 and 5.");
-    return;
-  }
-
-  const { data: existing, error: fetchError } = await supabase
-    .from("reviews")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("concert_id", concertId)
+  // See if a review already exists for this user + concert
+  const { data: existing, error: selectError } = await supabase
+    .from('reviews')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('concert_id', concertId)
     .maybeSingle();
 
-  if (fetchError && fetchError.code !== "PGRST116") {
-    console.error("Error checking review:", fetchError);
+  if (selectError) {
+    console.error('Error checking existing review:', selectError);
+    statusEl.textContent = 'Error saving review.';
+    return;
   }
 
-  if (existing) {
-    const { error } = await supabase
-      .from("reviews")
-      .update({ rating, comment })
-      .eq("id", existing.id);
+  let upsertError = null;
 
-    if (error) {
-      alert("Error updating review: " + error.message);
-      return;
-    }
+  if (existing && existing.id) {
+    // Update existing
+    const { error } = await supabase
+      .from('reviews')
+      .update({
+        rating,
+        comment,
+      })
+      .eq('id', existing.id);
+    upsertError = error;
   } else {
-    const { error } = await supabase
-      .from("reviews")
-      .insert([{ user_id: user.id, concert_id: concertId, rating, comment }]);
-
-    if (error) {
-      alert("Error saving review: " + error.message);
-      return;
-    }
+    // Insert new
+    const { error } = await supabase.from('reviews').insert({
+      user_id: user.id,
+      concert_id: concertId,
+      rating,
+      comment,
+    });
+    upsertError = error;
   }
 
-  // Refresh favorites so the summary text and fields stay in sync
-  await loadFavorites();
-  alert("Review saved!");
+  if (upsertError) {
+    console.error('Error saving review:', upsertError);
+    statusEl.textContent = 'Error saving review.';
+    return;
+  }
+
+  statusEl.textContent = 'Review saved ✔';
 }
+
+ 
 
 // ====== Auto-init on dashboard ======
 if (window.location.pathname.endsWith("dashboard.html")) {
@@ -486,3 +544,4 @@ if (window.location.pathname.endsWith("dashboard.html")) {
     setupBrowseControls();
   })();
 }
+
