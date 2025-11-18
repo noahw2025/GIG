@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Navbar -->
+  <!-- Top Navigation -->
   <header class="navbar">
     <h1>TrackMyGig</h1>
     <nav>
@@ -18,53 +18,108 @@
     </nav>
   </header>
 
-  <!-- Main Dashboard Container -->
-  <div class="dashboard-container">
-
-    <!-- Browse Concerts -->
-       <!-- 🎫 Browse Concerts Section -->
+  <main class="dashboard-container">
+    <!-- 🎧 Browse / Personalized Dashboard -->
     <section id="browse" class="page-section">
       <h2>Browse Concerts</h2>
+      <p class="browse-subtitle">
+        Search for upcoming shows, filter by location, and discover your next gig.
+      </p>
 
-      <!-- Search + Filter controls -->
+      <!-- Personalized Dashboard Row -->
+      <div class="personalized-dashboard">
+        <div class="personalized-block">
+          <h3>Recommended For You</h3>
+          <div id="recommendedList" class="personalized-list">
+            <!-- Filled by script.js -->
+          </div>
+        </div>
+
+        <div class="personalized-block">
+          <h3>Recently Viewed</h3>
+          <div id="recentList" class="personalized-list">
+            <!-- Filled by script.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Browse Controls -->
       <div class="browse-controls">
         <input
           type="text"
           id="searchInput"
-          placeholder="Search by artist, city, or description..."
+          placeholder="Search by artist, location, or description..."
         />
         <select id="locationFilter">
           <option value="">All Locations</option>
+          <!-- Options populated dynamically -->
         </select>
       </div>
 
-      <!-- Small personalized message area -->
       <p id="browseMessage" class="browse-message"></p>
 
       <div class="concert-list" id="concertList"></div>
     </section>
 
+    <!-- 🔍 Concert Detail View -->
+    <section id="concertDetail" class="page-section hidden">
+      <button
+        id="backToBrowseBtn"
+        class="back-btn"
+        onclick="goBackToBrowse()"
+      >
+        ← Back to concerts
+      </button>
 
-    <!-- Favorites -->
+      <div id="concertDetailContent" class="concert-detail-card">
+        <!-- Filled dynamically by script.js -->
+      </div>
+    </section>
+
+    <!-- ⭐ Favorites -->
     <section id="favorites" class="page-section hidden">
       <h2>My Favorites</h2>
+      <p class="section-subtitle">
+        These are your saved concerts. Update your ratings and leave quick reviews.
+      </p>
       <div id="favoritesList"></div>
     </section>
 
-    <!-- Profile -->
+    <!-- 👤 Profile -->
     <section id="profile" class="page-section hidden profile-section">
       <h2>My Profile</h2>
-      <form id="profileForm">
-        <input type="text" id="profileName" placeholder="Full Name" />
-        <input type="text" id="favoriteArtists" placeholder="Favorite Artists" />
-        <input type="text" id="favoriteGenre" placeholder="Favorite Music Genre" />
-        <input type="text" id="profileCity" placeholder="City" />
-        <button type="button" onclick="updateProfile()">Save Changes</button>
+      <p class="section-subtitle">
+        Add a few details so we can personalize concert recommendations for you.
+      </p>
+
+      <form onsubmit="event.preventDefault(); updateProfile();">
+        <input
+          type="text"
+          id="profileName"
+          placeholder="Full Name"
+        />
+        <input
+          type="text"
+          id="favoriteArtists"
+          placeholder="Favorite Artists (comma-separated)"
+        />
+        <input
+          type="text"
+          id="favoriteGenre"
+          placeholder="Favorite Genre (e.g., rock, hip hop)"
+        />
+        <input
+          type="text"
+          id="profileCity"
+          placeholder="City (e.g., Atlanta)"
+        />
+
+        <button type="submit">Save Changes</button>
       </form>
+
       <p id="profileStatus"></p>
     </section>
-
-  </div>
+  </main>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
