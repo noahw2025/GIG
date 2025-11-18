@@ -506,14 +506,16 @@ function showConcertDetail(concert) {
   }
 }
 
+// 👇 Set this to your actual GitHub Pages dashboard URL
+// Example: "https://your-username.github.io/trackmygig/dashboard.html"
+const PRODUCTION_DASHBOARD_URL =
+  "https://noahw2025.github.io/GIG/dashboard.html";
+
 function shareSimpleConcertLink(concert) {
-  // Build a URL pointing to *this* dashboard page with a query param for this event
-  const url = new URL(window.location.href);
-
-  // ✅ Do NOT change pathname; keeps the correct folder path even for file:// URLs
-  url.searchParams.set("event_id", concert.id);
-
-  const shareUrl = url.toString();
+  // Always share the LIVE site dashboard with an event_id query param
+  const shareUrl = `${PRODUCTION_DASHBOARD_URL}?event_id=${encodeURIComponent(
+    concert.id
+  )}`;
 
   if (navigator.share) {
     navigator
@@ -1024,3 +1026,4 @@ if (window.location.pathname.endsWith("dashboard.html")) {
     // back button is wired inline with goBackToBrowse()
   })();
 }
+
