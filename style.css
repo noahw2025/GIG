@@ -177,66 +177,6 @@ body {
   cursor: pointer;
 }
 
-.favorite-card {
-  text-align: left;
-}
-
-.favorite-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.favorite-title {
-  font-size: 15px;
-}
-
-.favorite-review-block {
-  margin-top: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.favorite-review-label {
-  font-size: 13px;
-}
-
-.review-comment-input {
-  width: 100%;
-  min-height: 60px;
-  resize: vertical;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  padding: 8px 10px;
-  font-size: 13px;
-}
-
-.favorite-review-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.save-review-btn {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: none;
-  background: #3a86ff;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.review-status-text {
-  font-size: 12px;
-  color: #4b5563;
-}
-
 /* ---------- FAVORITES LIST ---------- */
 #favoritesList {
   display: grid;
@@ -441,4 +381,108 @@ body {
   opacity: 0.9;
 }
 
+.tagline {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 14px;
+}
 
+.browse-subtitle,
+.section-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+/* ---------- PERSONALIZED DASHBOARD (Recommended + Recent) ---------- */
+
+.personalized-dashboard {
+  max-width: 1100px;
+  margin: 0 auto 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.personalized-block h3 {
+  font-size: 18px;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.personalized-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.personalized-pill {
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  color: #111827;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.personalized-pill:hover {
+  background: #e3f2ff;
+}
+
+.empty-state-small {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ---------- CONCERT DETAIL VIEW ---------- */
+.concert-detail-card {
+  max-width: 800px;
+  margin: 24px auto;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.concert-detail-card h2 {
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+.detail-location {
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.detail-description {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 18px;
+}
+
+.detail-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.detail-buttons button {
+  flex: 1;
+  min-width: 140px;
+}
+
+.back-btn {
+  border: none;
+  background: transparent;
+  color: #000;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+}
