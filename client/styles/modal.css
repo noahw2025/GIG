@@ -1,0 +1,68 @@
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 20px;
+  width: min(500px, 90vw);
+  position: relative;
+  box-shadow: var(--shadow);
+}
+
+.modal .close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.panel .panel-header {
+  margin-bottom: 0;
+}
+
+.panel-header .ghost.small-btn {
+  padding: 6px 10px;
+}
+
+.panel .notification-card {
+  margin: 0;
+}
+
+.panel {
+  position: relative;
+}
+
+.notifications .panel {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  min-width: 360px;
+  max-width: 480px;
+  max-height: 360px;
+  overflow: auto;
+  background: #fff;
+  z-index: 5;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.panel-header button {
+  white-space: nowrap;
+}

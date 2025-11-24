@@ -1,0 +1,60 @@
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 32px;
+  padding: 60px;
+}
+
+.hero {
+  padding: 32px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(168, 85, 247, 0.1));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.hero h1 {
+  font-size: 2.2rem;
+  margin: 12px 0;
+}
+
+.hero .lede {
+  color: var(--muted);
+}
+
+.hero-points {
+  padding-left: 18px;
+  line-height: 1.6;
+}
+
+.auth-card {
+  background: var(--glass);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.auth-form input {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.small-btn {
+  padding: 6px 10px;
+}
+
+@media (max-width: 768px) {
+  .auth-shell {
+    padding: 28px;
+  }
+}

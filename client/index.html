@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TrackMyGig | Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles/global.css" />
+    <link rel="stylesheet" href="./styles/auth.css" />
+  </head>
+  <body>
+    <div class="auth-shell">
+      <div class="hero">
+        <div class="badge">New</div>
+        <h1>Track concerts you love. Journal the nights you’ll never forget.</h1>
+        <p class="lede">
+          TrackMyGig keeps your concert life organized—from Ticketmaster browsing to favorites, reviews, badges, and
+          notifications.
+        </p>
+        <ul class="hero-points">
+          <li>Browse live Ticketmaster shows</li>
+          <li>Favorite, review, and journal your gigs</li>
+          <li>Earn badges and get reminders</li>
+        </ul>
+        <a class="ghost" href="./signup.html">Create an account →</a>
+      </div>
+      <div class="auth-card">
+        <h2>Welcome back</h2>
+        <p class="muted">Log in to pick up where you left off.</p>
+        <form id="loginForm" class="auth-form">
+          <label>Email</label>
+          <input type="email" name="email" placeholder="you@example.com" required />
+          <label>Password</label>
+          <input type="password" name="password" placeholder="••••••••" required />
+          <button type="submit" class="primary">Log In</button>
+        </form>
+        <p class="muted small">
+          New here?
+          <a href="./signup.html">Create an account</a>
+        </p>
+        <div id="authMessage" class="toast"></div>
+      </div>
+    </div>
+    <script type="module" src="./scripts/auth.js"></script>
+  </body>
+</html>

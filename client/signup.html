@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TrackMyGig | Sign Up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles/global.css" />
+    <link rel="stylesheet" href="./styles/auth.css" />
+  </head>
+  <body>
+    <div class="auth-shell">
+      <div class="hero">
+        <div class="badge">Project-ready</div>
+        <h1>Sign up for TrackMyGig</h1>
+        <p class="lede">All your concerts, favorites, badges, and journals—powered by real Ticketmaster data.</p>
+        <a class="ghost" href="./index.html">← Back to login</a>
+      </div>
+      <div class="auth-card">
+        <h2>Create account</h2>
+        <p class="muted">We’ll personalize recommendations with a few details.</p>
+        <form id="signupForm" class="auth-form">
+          <label>Full name</label>
+          <input type="text" name="full_name" placeholder="Alex Fan" required />
+          <label>Email</label>
+          <input type="email" name="email" placeholder="you@example.com" required />
+          <label>Password</label>
+          <input type="password" name="password" placeholder="••••••••" required />
+          <label>City</label>
+          <input type="text" name="city" placeholder="Austin, TX" />
+          <label>Favorite artists</label>
+          <input type="text" name="favorite_artists" placeholder="Beyoncé, Paramore" />
+          <label>Favorite genre</label>
+          <input type="text" name="favorite_genre" placeholder="Pop, Rock" />
+          <button type="submit" class="primary">Create account</button>
+        </form>
+        <div id="authMessage" class="toast"></div>
+      </div>
+    </div>
+    <script type="module" src="./scripts/auth.js"></script>
+  </body>
+</html>

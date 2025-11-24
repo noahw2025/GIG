@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TrackMyGig | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles/global.css" />
+    <link rel="stylesheet" href="./styles/dashboard.css" />
+    <link rel="stylesheet" href="./styles/cards.css" />
+    <link rel="stylesheet" href="./styles/modal.css" />
+    <link rel="stylesheet" href="./styles/chatbot.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-dot">♪</div>
+        <div>
+          <strong>TrackMyGig</strong>
+          <div class="sub">Real Ticketmaster data</div>
+        </div>
+      </div>
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="browse">Browse</button>
+        <button class="tab-btn" data-tab="favorites">Favorites</button>
+        <button class="tab-btn" data-tab="profile">Profile</button>
+        <button class="tab-btn" data-tab="journal">Journal</button>
+        <button class="tab-btn" data-tab="chatbot">Chatbot</button>
+      </nav>
+      <div class="actions">
+        <div class="notifications">
+          <button id="bellBtn" class="icon-btn">
+            🔔 <span id="unreadBadge" class="badge-count hidden"></span>
+          </button>
+          <div id="notificationPanel" class="panel hidden">
+            <div class="panel-header">
+              <strong>Notifications</strong>
+              <button id="markAllRead" class="ghost small-btn">Mark all read</button>
+              <button id="clearAllNotif" class="ghost small-btn">Delete all</button>
+            </div>
+            <div id="notificationList"></div>
+          </div>
+        </div>
+        <div class="user-chip">
+          <span id="userEmail">you@example.com</span>
+          <button id="logoutBtn" class="ghost small-btn">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <section id="browse" class="tab-panel active">
+        <div class="panel-header">
+          <div>
+            <h2>Browse live shows</h2>
+            <p class="muted">Search Ticketmaster directly, then favorite to pin them to your DB.</p>
+          </div>
+          <button id="recommendedBtn" class="ghost">Load Recommended</button>
+        </div>
+        <form id="searchForm" class="filters">
+          <input type="text" name="keyword" placeholder="Artist, venue, vibe..." />
+          <input type="text" name="city" placeholder="City" />
+          <input type="text" name="genre" placeholder="Genre" />
+          <input type="date" name="startDate" />
+          <input type="date" name="endDate" />
+          <button type="submit" class="primary">Search</button>
+        </form>
+        <div class="subsection">
+          <div class="panel-header">
+            <h3>Recommended for you (top 4)</h3>
+            <p class="muted small">Uses your city + favorite artists/genre; kept compact.</p>
+          </div>
+          <div id="recommended" class="grid compact-grid"></div>
+        </div>
+        <div class="subsection">
+          <div class="panel-header">
+            <h3>Search results</h3>
+            <p class="muted small">Only shows what you searched—kept separate from recommendations.</p>
+          </div>
+          <div id="searchResults" class="grid"></div>
+        </div>
+      </section>
+
+      <section id="favorites" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Your favorites</h2>
+            <p class="muted">These rows exist in SQLite because you saved them.</p>
+            <small class="muted">Tip: Favorite a show first, then leave reviews or journal it.</small>
+          </div>
+        </div>
+        <div id="favoritesList" class="grid"></div>
+      </section>
+
+      <section id="profile" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Profile</h2>
+            <p class="muted">Personalize recommendations and your badge journey.</p>
+          </div>
+          <div id="profileStats" class="stat-row"></div>
+        </div>
+        <div class="profile-grid">
+          <div class="card profile-highlight">
+            <div class="pill">Recommendation context</div>
+            <h3 id="profileSummaryTitle">Your vibe</h3>
+            <p id="profileSummary" class="muted">Update your city, artists, and genres to shape recommendations.</p>
+            <div class="mini-hints">
+              <span class="chip">City drives nearby shows</span>
+              <span class="chip">Artists boost keyword relevance</span>
+              <span class="chip">Genres filter sports/noise</span>
+            </div>
+          </div>
+          <form id="profileForm" class="card form-card">
+            <div class="field">
+              <label>Full name</label>
+              <input type="text" name="full_name" />
+            </div>
+            <div class="field">
+              <label>City</label>
+              <input type="text" name="city" />
+            </div>
+            <div class="field">
+              <label>Favorite artists</label>
+              <input type="text" name="favorite_artists" placeholder="Comma separated" />
+            </div>
+            <div class="field">
+              <label>Favorite genre</label>
+              <input type="text" name="favorite_genre" />
+            </div>
+            <button type="submit" class="primary">Save profile</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="journal" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Journal</h2>
+            <p class="muted">Log nights you attended and show off badges.</p>
+          </div>
+        </div>
+        <div id="journalList" class="list"></div>
+      </section>
+
+      <section id="chatbot" class="tab-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Chatbot</h2>
+            <p class="muted">Ask for suggestions or hype yourself up.</p>
+          </div>
+        </div>
+        <div class="chat-wrapper">
+          <div id="chatMessages" class="chat-window"></div>
+          <form id="chatForm" class="chat-input">
+            <input id="chatInput" type="text" placeholder="Ask about concerts..." />
+            <button class="primary" type="submit">Send</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <div id="detailsModal" class="modal hidden">
+      <div class="modal-content">
+        <button class="close" data-close>×</button>
+        <div id="detailsBody"></div>
+      </div>
+    </div>
+
+    <div id="reviewModal" class="modal hidden">
+      <div class="modal-content">
+        <button class="close" data-close>×</button>
+        <h3>Leave a review</h3>
+        <form id="reviewForm" class="stacked">
+          <input type="hidden" name="concert_id" />
+          <label>Rating (1-5)</label>
+          <input type="number" min="1" max="5" name="rating" required />
+          <label>Comment</label>
+          <textarea name="comment" rows="3"></textarea>
+          <button type="submit" class="primary">Save review</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="journalModal" class="modal hidden">
+      <div class="modal-content">
+        <button class="close" data-close>×</button>
+        <h3>Mark attended / Journal</h3>
+        <form id="journalForm" class="stacked">
+          <input type="hidden" name="concert_id" />
+          <input type="hidden" name="entry_id" />
+          <label>Mood</label>
+          <input type="text" name="mood" placeholder="Energized, nostalgic..." />
+          <label>Attended on</label>
+          <input type="date" name="attended_at" />
+          <label>Entry</label>
+          <textarea name="entry_text" rows="3" required></textarea>
+          <button type="submit" class="primary">Save journal entry</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="shareModal" class="modal hidden">
+      <div class="modal-content">
+        <button class="close" data-close>×</button>
+        <h3>Invite a friend</h3>
+        <p>Share this event link:</p>
+        <input id="shareLink" type="text" readonly value="https://trackmygig.local/share" />
+        <button id="copyShare" class="ghost">Copy</button>
+      </div>
+    </div>
+
+    <div id="globalToast" class="toast"></div>
+
+    <script type="module" src="./scripts/api.js"></script>
+    <script type="module" src="./scripts/dashboard.js"></script>
+    <script type="module" src="./scripts/browse.js"></script>
+    <script type="module" src="./scripts/favorites.js"></script>
+    <script type="module" src="./scripts/profile.js"></script>
+    <script type="module" src="./scripts/journal.js"></script>
+    <script type="module" src="./scripts/notifications.js"></script>
+    <script type="module" src="./scripts/chatbot.js"></script>
+  </body>
+</html>

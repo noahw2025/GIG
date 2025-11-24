@@ -1,0 +1,52 @@
+.card {
+  position: relative;
+}
+
+.card h3 {
+  margin-bottom: 6px;
+}
+
+.card .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.card .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ticket {
+  background: #ecfeff;
+  color: #0ea5e9;
+}
+
+.pill {
+  background: #f1f5f9;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px;
+}
+
+.subsection .grid {
+  margin-top: 8px;
+}
+
+.compact-grid .card {
+  padding: 12px;
+}
+
+.card button[type="button"] {
+  cursor: pointer;
+}
