@@ -91,9 +91,8 @@ const ensureConcert = async (concert) => {
     .eq("external_id", concert.external_id)
     .maybeSingle();
   if (findErr) throw findErr;
-  if (existing) return existing;
   const created_at = new Date().toISOString();
-  // Only insert known columns to avoid schema mismatches (e.g., missing genre)
+  // Only insert/update known columns to avoid schema mismatches (e.g., missing genre)
   const insertRow = {
     external_id: concert.external_id,
     artist: concert.artist,
@@ -105,11 +104,35 @@ const ensureConcert = async (concert) => {
     ticket_url: concert.ticket_url,
     source: concert.source,
     genre: concert.genre,
+    min_price: concert.min_price,
+    max_price: concert.max_price,
+    ticket_status: concert.ticket_status,
     created_at,
   };
+  if (existing) {
+    const patch = {};
+    ["artist", "title", "location", "venue", "date", "description", "ticket_url", "genre", "min_price", "max_price", "ticket_status"].forEach(
+      (key) => {
+        if (concert[key] !== undefined && concert[key] !== existing[key]) {
+          patch[key] = concert[key];
+        }
+      }
+    );
+    if (Object.keys(patch).length) {
+      const { data: updated, error: updateErr } = await supabase
+        .from("concerts")
+        .update(patch)
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (updateErr) throw updateErr;
+      return { ...updated, _previous: existing };
+    }
+    return { ...existing, _previous: existing };
+  }
   const { data, error } = await supabase.from("concerts").insert([insertRow]).select().single();
   if (error) throw error;
-  return data;
+  return { ...data, _previous: null };
 };
 
 // ---------- Favorites ----------
@@ -150,10 +173,11 @@ const addFavorite = async (concertPayload) => {
     .single();
   if (error) throw error;
   await createNotification(userId, {
-    type: "favorite",
+    type: "GENERAL",
     title: "Added to favorites",
-    message: `Saved ${concert.artist} at ${concert.venue || concert.location || "TBD"}`,
+    message: `Saved ${concert.artist} at ${concert.venue || concert.location || "TBD"}. We'll nudge you before the show.`,
   });
+  notifyTicketSignals(userId, concert);
   return { concert, favorite: data };
 };
 
@@ -163,6 +187,82 @@ const removeFavorite = async (favoriteId) => {
   const { error } = await supabase.from("favorites").delete().eq("id", favoriteId).eq("user_id", userId);
   if (error) throw error;
   return true;
+};
+
+// ---------- Wishlist ----------
+const fetchWishlist = async () => {
+  const user = currentUser();
+  const userId = asUserId(user);
+  const { data, error } = await supabase
+    .from("wishlists")
+    .select("id, created_at, concerts(*)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (
+    data?.map((row) => ({
+      wishlist_id: row.id,
+      wishlisted_at: row.created_at,
+      ...(row.concerts || {}),
+    })) || []
+  );
+};
+
+const addWishlist = async (concertPayload) => {
+  const user = currentUser();
+  const userId = asUserId(user);
+  const concert = await ensureConcert(concertPayload);
+  const created_at = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("wishlists")
+    .upsert({ user_id: userId, concert_id: concert.id, created_at }, { onConflict: "user_id,concert_id" })
+    .select()
+    .single();
+  if (error) throw error;
+  await createNotification(userId, {
+    type: "UPCOMING_SHOW_REMINDER",
+    title: "Saved to wishlist",
+    message: `We'll watch ${concert.artist} at ${concert.venue || concert.location || "TBD"} for ticket updates.`,
+  });
+  notifyTicketSignals(userId, concert);
+  return { concert, wishlist: data };
+};
+
+const removeWishlist = async (wishlistId) => {
+  const user = currentUser();
+  const userId = asUserId(user);
+  const { error } = await supabase.from("wishlists").delete().eq("id", wishlistId).eq("user_id", userId);
+  if (error) throw error;
+  return true;
+};
+
+const notifyTicketSignals = async (userId, concert) => {
+  const status = (concert.ticket_status || "").toLowerCase();
+  if (!status) return;
+  if (status.includes("low") || status.includes("limited")) {
+    await createNotification(userId, {
+      type: "LOW_TICKETS",
+      title: "Low tickets alert",
+      message: `${concert.artist} at ${concert.venue || concert.location || "TBD"} is showing limited availability.`,
+    });
+  }
+  if (status.includes("sold")) {
+    await createNotification(userId, {
+      type: "LOW_TICKETS",
+      title: "Sold out warning",
+      message: `${concert.artist} appears sold out. Watch for resale or venue releases.`,
+    });
+  }
+  if (concert._previous) {
+    const prevMin = concert._previous.min_price;
+    if (concert.min_price && prevMin && Number(concert.min_price) < Number(prevMin)) {
+      await createNotification(userId, {
+        type: "PRICE_DROP",
+        title: "Price drop",
+        message: `${concert.artist} tickets dropped to $${concert.min_price}.`,
+      });
+    }
+  }
 };
 
 // ---------- Reviews ----------
@@ -356,6 +456,10 @@ const mapEvent = (event) => {
   if (venue?.city?.name) locationParts.push(venue.city.name);
   if (venue?.state?.stateCode) locationParts.push(venue.state.stateCode);
   const location = locationParts.filter(Boolean).join(", ");
+  const priceRange = event?.priceRanges?.[0];
+  const min_price = priceRange?.min || null;
+  const max_price = priceRange?.max || null;
+  const ticket_status = event?.dates?.status?.code || event?.ticketAvailability?.status || null;
   return {
     external_id: event.id,
     artist,
@@ -367,6 +471,9 @@ const mapEvent = (event) => {
     ticket_url: event.url,
     source: "ticketmaster",
     genre: event.classifications?.[0]?.genre?.name,
+    min_price,
+    max_price,
+    ticket_status,
   };
 };
 
@@ -496,6 +603,7 @@ export const apiPost = async (path, body) => {
   if (route === "auth/login") return login(body);
   if (route === "chatbot") return chatbotReply(body);
   if (route === "favorites") return addFavorite(body);
+  if (route === "wishlist") return addWishlist(body);
   if (route === "reviews") return { review: await saveReview(body) };
   if (route === "journal") return { entry: await saveJournalEntry(body) };
   if (route.startsWith("journal/")) {
@@ -520,6 +628,7 @@ export const apiGet = async (path) => {
     return { user: safeUser };
   }
   if (route === "favorites") return { favorites: await fetchFavorites() };
+  if (route === "wishlist") return { wishlist: await fetchWishlist() };
   if (route.startsWith("reviews/")) {
     const id = route.split("/")[1];
     return await getReviews(id);
@@ -572,6 +681,11 @@ export const apiDelete = async (path) => {
   if (route.startsWith("favorites/")) {
     const id = route.split("/")[1];
     await removeFavorite(id);
+    return { success: true };
+  }
+  if (route.startsWith("wishlist/")) {
+    const id = route.split("/")[1];
+    await removeWishlist(id);
     return { success: true };
   }
   if (route.startsWith("journal/")) {

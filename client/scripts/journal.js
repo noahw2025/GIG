@@ -12,20 +12,24 @@ export const loadJournal = async () => {
       journalList.innerHTML = `<div class="card empty">No journal entries yet. Mark a favorite as attended.</div>`;
       return;
     }
-    journalList.innerHTML = journalCache
+    const cards = journalCache
       .map(
         (j) => `<div class="card" data-entry="${j.id}">
-        <div class="pill">${formatDate(j.attended_at || j.date)} • ${j.mood || "Mood?"}</div>
-        <strong>${j.artist} — ${j.title || ""}</strong>
-        <div class="chip">${j.badge_type || "Concert Explorer Badge"}</div>
-        <p>${j.entry_text}</p>
-        <div class="actions">
-          <button type="button" class="ghost small-btn" data-action="edit">Edit</button>
-          <button type="button" class="ghost small-btn" data-action="delete">Remove entry</button>
-        </div>
-      </div>`
+          <div class="floating-actions">
+            <div class="pill">${formatDate(j.attended_at || j.date)} · ${j.mood || "Mood?"}</div>
+            <div class="chip">${j.badge_type || "Concert Explorer Badge"}</div>
+          </div>
+          <strong>${j.artist} — ${j.title || ""}</strong>
+          <p class="muted">${j.venue || j.location || "Location TBA"}</p>
+          <p>${j.entry_text}</p>
+          <div class="actions">
+            <button type="button" class="ghost small-btn" data-action="edit">Edit</button>
+            <button type="button" class="ghost small-btn" data-action="delete">Remove entry</button>
+          </div>
+        </div>`
       )
       .join("");
+    journalList.innerHTML = `<div class="timeline">${cards}</div>`;
   } catch (err) {
     showToast("Could not load journal");
   }

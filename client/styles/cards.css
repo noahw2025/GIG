@@ -1,5 +1,12 @@
 .card {
   position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
+  border-color: rgba(124, 58, 237, 0.4);
 }
 
 .card h3 {
@@ -17,26 +24,22 @@
 .card .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 10px;
+  margin-top: 14px;
+  align-items: center;
 }
 
 .ticket {
-  background: #ecfeff;
-  color: #0ea5e9;
+  background: rgba(34, 211, 238, 0.12);
+  color: #67e8f9;
 }
 
 .pill {
-  background: #f1f5f9;
+  background: rgba(148, 163, 184, 0.08);
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 0.85rem;
-}
-
-.empty {
-  text-align: center;
   color: var(--muted);
-  padding: 20px;
 }
 
 .subsection .grid {
@@ -44,9 +47,37 @@
 }
 
 .compact-grid .card {
-  padding: 12px;
+  padding: 14px;
 }
 
 .card button[type="button"] {
   cursor: pointer;
+}
+
+.action-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  text-align: center;
+}
+
+.card-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.card-actions .primary,
+.card-actions .ghost {
+  width: 100%;
+  justify-content: center;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.ghost.subtle {
+  border-style: dashed;
+  opacity: 0.85;
 }

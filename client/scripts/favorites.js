@@ -30,25 +30,39 @@ const render = () => {
   listEl.innerHTML = favorites
     .map((f) => {
       const reviewBlock = f.user_review
-        ? `<div class="chip chip-positive">Your review ${f.user_review.rating}/5</div><div class="review-quote">“${f.user_review.comment || "No comment"}”</div>`
+        ? `<div class="chip chip-positive">Your review ${f.user_review.rating}/5</div><div class="review-quote">"${f.user_review.comment || "No comment"}"</div>`
         : `<div class="chip chip-muted">No review yet</div>`;
       const genre = f.genre ? `<span class="chip chip-genre">${f.genre}</span>` : "";
+      const status = formatStatus(f.ticket_status);
+      const price =
+        f.min_price && f.max_price
+          ? `$${f.min_price} - $${f.max_price}`
+          : f.min_price
+          ? `From $${f.min_price}`
+          : f.max_price
+          ? `Up to $${f.max_price}`
+          : "";
+      const mapLink = buildMapLink(f);
       return `<div class="card fav-card" data-fav="${f.favorite_id}" data-concert="${f.id}">
-        <div class="card-top">
+        <div class="floating-actions">
           <div class="pill">Favorited ${formatDate(f.favorited_at)}</div>
           ${genre}
+          ${status ? `<span class="chip ${status.className}">${status.label}</span>` : ""}
         </div>
         <h3>${f.artist}</h3>
+        <p class="muted">${f.title || ""}</p>
         <div class="meta">
-          <span>Location: ${f.location || "TBD"}</span>
-          <span>Date: ${formatDate(f.date)}</span>
-          ${f.venue ? `<span>Venue: ${f.venue}</span>` : ""}
+          <span>${f.venue || f.location || "Venue TBA"}</span>
+          <span>${formatDate(f.date)}</span>
+          ${price ? `<span>${price}</span>` : ""}
+          ${mapLink ? `<a class="ghost small-btn" href="${mapLink}" target="_blank" rel="noopener">Map</a>` : ""}
         </div>
         ${reviewBlock}
         <div class="actions">
-          <button class="primary" data-act="review">Review</button>
-          <button class="ghost" data-act="journal">Mark attended</button>
+          <button class="primary" data-act="review">Review this show</button>
+          <button class="ghost" data-act="journal">Log in Journal</button>
           <button class="ghost" data-act="share">Invite</button>
+          <a class="ghost" href="${f.ticket_url || "#"}" target="_blank" rel="noopener">Book Tickets</a>
           <button class="ghost" data-act="remove">Remove</button>
         </div>
       </div>`;
@@ -76,7 +90,9 @@ listEl?.addEventListener("click", async (e) => {
     journalModal.classList.remove("hidden");
   }
   if (act === "share") {
-    shareLink.value = `https://trackmygig.local/concert/${concertId}`;
+    const item = favorites.find((x) => String(x.favorite_id) === String(favoriteId));
+    const ref = item?.external_id || card.dataset.concert;
+    shareLink.value = `${window.location.origin}/dashboard.html?concertId=${encodeURIComponent(ref)}`;
     shareModal.classList.remove("hidden");
   }
 });
@@ -124,3 +140,20 @@ copyShare?.addEventListener("click", async () => {
 });
 
 document.addEventListener("DOMContentLoaded", loadFavorites);
+
+const buildMapLink = (ev) => {
+  const venue = ev.venue || "";
+  const loc = ev.location || "";
+  const query = `${venue} ${loc}`.trim();
+  if (!query) return "";
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+};
+
+const formatStatus = (status) => {
+  if (!status) return null;
+  const code = String(status).toLowerCase();
+  if (code.includes("sold")) return { label: "Sold out", className: "chip-muted" };
+  if (code.includes("limited") || code.includes("low")) return { label: "Limited", className: "chip-genre" };
+  if (code.includes("available") || code.includes("onsale")) return { label: "Available", className: "chip-positive" };
+  return { label: status, className: "chip-muted" };
+};
