@@ -14,7 +14,7 @@
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: #0b1324;
+  background: var(--bg-input);
   padding: 12px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
   display: flex;

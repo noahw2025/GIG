@@ -47,7 +47,7 @@
   padding: 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: #0b1324;
+  background: var(--bg-input);
   color: var(--text);
 }
 

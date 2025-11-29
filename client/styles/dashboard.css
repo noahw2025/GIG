@@ -5,7 +5,7 @@
 }
 
 .sidebar {
-  background: #0c1425;
+  background: var(--panel);
   border-right: 1px solid var(--border);
   padding: 22px;
   position: sticky;
@@ -66,7 +66,7 @@
 
 .tab-btn.active {
   background: linear-gradient(120deg, rgba(124, 58, 237, 0.35), rgba(34, 211, 238, 0.2));
-  color: #fff;
+  color: var(--text);
   border-color: rgba(124, 58, 237, 0.6);
   box-shadow: 0 12px 30px rgba(124, 58, 237, 0.25);
 }
@@ -129,7 +129,7 @@
 }
 
 .stat-card {
-  background: rgba(124, 58, 237, 0.08);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   padding: 12px 16px;
   border-radius: var(--radius);
@@ -206,7 +206,7 @@
 
 .hero-card {
   padding: 20px;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(34, 211, 238, 0.16));
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(34, 211, 238, 0.1));
   border: 1px solid rgba(124, 58, 237, 0.25);
 }
 
