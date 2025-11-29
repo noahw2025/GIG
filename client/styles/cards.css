@@ -81,3 +81,20 @@
   border-style: dashed;
   opacity: 0.85;
 }
+
+.share-menu {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+}
+
+.share-menu button {
+  width: 100%;
+  margin-top: 6px;
+}

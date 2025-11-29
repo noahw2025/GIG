@@ -123,6 +123,17 @@ const handleShare = async (extId) => {
   } catch {
     showToast("Could not share right now.");
   }
+  const inviteModal = document.getElementById("inviteModal");
+  const inviteMsg = document.getElementById("inviteMessage");
+  const mailto = document.getElementById("mailtoInvite");
+  if (inviteModal && inviteMsg) {
+    const msg = `I'm thinking of going to ${payload.artist || payload.title || "this show"} at ${payload.venue || payload.location || "a venue"} on ${formatDate(
+      payload.date
+    )}. Here's the link: ${url}. Want to come?`;
+    inviteMsg.value = msg;
+    mailto.href = `mailto:?subject=Join me at a show&body=${encodeURIComponent(msg)}`;
+    inviteModal.classList.remove("hidden");
+  }
 };
 
 const formatPriceRange = (ev) => {

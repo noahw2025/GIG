@@ -111,13 +111,11 @@ const ensureConcert = async (concert) => {
   };
   if (existing) {
     const patch = {};
-    ["artist", "title", "location", "venue", "date", "description", "ticket_url", "genre", "min_price", "max_price", "ticket_status"].forEach(
-      (key) => {
-        if (concert[key] !== undefined && concert[key] !== existing[key]) {
-          patch[key] = concert[key];
-        }
+    ["artist", "title", "location", "venue", "date", "description", "ticket_url", "genre", "min_price", "max_price", "ticket_status"].forEach((key) => {
+      if (concert[key] !== undefined && concert[key] !== existing[key]) {
+        patch[key] = concert[key];
       }
-    );
+    });
     if (Object.keys(patch).length) {
       const { data: updated, error: updateErr } = await supabase
         .from("concerts")
@@ -262,6 +260,43 @@ const notifyTicketSignals = async (userId, concert) => {
         message: `${concert.artist} tickets dropped to $${concert.min_price}.`,
       });
     }
+  }
+};
+
+// ---------- Notifications (exported helper for reminders) ----------
+export const createUserNotification = async ({ type = "GENERAL", title = "", message = "" }) => {
+  const user = currentUser();
+  const userId = asUserId(user);
+  const created_at = new Date().toISOString();
+  const { error } = await supabase
+    .from("notifications")
+    .insert([{ user_id: userId, type, title, message, is_read: false, created_at }]);
+  if (error) throw error;
+  return true;
+};
+
+export const upsertReminder = async (concertId, remind_days_before = 2) => {
+  // Soft-implementation: create a notification row as a reminder marker.
+  const user = currentUser();
+  const userId = asUserId(user);
+  await createUserNotification({
+    type: "UPCOMING_SHOW_REMINDER",
+    title: "Reminder set",
+    message: `We'll remind you ${remind_days_before} days before your show.`,
+  });
+  // Persist minimal reminder data in localStorage to avoid new schema dependence.
+  const key = "trackmygig_reminders";
+  const existing = JSON.parse(localStorage.getItem(key) || "{}");
+  existing[concertId] = { remind_days_before };
+  localStorage.setItem(key, JSON.stringify(existing));
+};
+
+export const getReminderSettings = () => {
+  const key = "trackmygig_reminders";
+  try {
+    return JSON.parse(localStorage.getItem(key) || "{}");
+  } catch {
+    return {};
   }
 };
 

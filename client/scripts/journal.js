@@ -2,6 +2,11 @@ import { apiDelete, apiGet, formatDate, showToast } from "./api.js";
 
 const journalList = document.getElementById("journalList");
 let journalCache = [];
+const certificateModal = document.getElementById("certificateModal");
+const certTextEl = document.getElementById("certText");
+const certBadgesEl = document.getElementById("certBadges");
+const certIdEl = document.getElementById("certId");
+const copyCertBtn = document.getElementById("copyCertText");
 
 export const loadJournal = async () => {
   if (!journalList) return;
@@ -25,6 +30,8 @@ export const loadJournal = async () => {
           <div class="actions">
             <button type="button" class="ghost small-btn" data-action="edit">Edit</button>
             <button type="button" class="ghost small-btn" data-action="delete">Remove entry</button>
+            <button type="button" class="ghost small-btn" data-action="certificate">View certificate</button>
+            <a class="ghost small-btn" href="${buildMapLink(j)}" target="_blank" rel="noopener">Map</a>
           </div>
         </div>`
       )
@@ -63,6 +70,37 @@ journalList?.addEventListener("click", async (e) => {
     journalForm.attended_at.value = entry.attended_at ? entry.attended_at.split("T")[0] : "";
     document.getElementById("journalModal").classList.remove("hidden");
   }
+
+  if (btn.dataset.action === "certificate") {
+    renderCertificate(entry);
+  }
 });
 
 document.addEventListener("DOMContentLoaded", loadJournal);
+
+const renderCertificate = (entry) => {
+  if (!certificateModal) return;
+  const name = JSON.parse(localStorage.getItem("trackmygig_user") || "{}")?.full_name || "TrackMyGig fan";
+  const date = entry.attended_at || entry.date || "";
+  const venue = entry.venue || entry.location || "Venue TBA";
+  const text = `This certifies that ${name} attended ${entry.artist || entry.title || "a concert"} at ${venue} on ${date ? formatDate(date) : "a past date"}.`;
+  certTextEl.textContent = text;
+  certBadgesEl.innerHTML = `<span class="chip">${entry.badge_type || "Concert Explorer Badge"}</span>${
+    entry.mood ? `<span class="chip chip-genre">Mood: ${entry.mood}</span>` : ""
+  }`;
+  certIdEl.textContent = `Certificate ID: ${entry.id} · Issued: ${formatDate(entry.created_at || new Date().toISOString())}`;
+  certificateModal.classList.remove("hidden");
+
+  copyCertBtn?.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(text);
+    showToast("Certificate text copied");
+  });
+};
+
+const buildMapLink = (ev) => {
+  const venue = ev.venue || "";
+  const loc = ev.location || "";
+  const query = `${venue} ${loc}`.trim();
+  if (!query) return "https://maps.google.com";
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+};

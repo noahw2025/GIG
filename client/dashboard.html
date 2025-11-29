@@ -77,29 +77,52 @@
         <section id="home" class="tab-panel active">
           <div class="section-header">
             <div>
-              <h2>Quick overview</h2>
-              <p class="muted">Upcoming favorites, wishlist picks, recommendations, and recent notifications.</p>
+              <h2>For you</h2>
+              <p class="muted">Time-aware highlights from your favorites, wishlist, and recommendations.</p>
             </div>
             <div class="btn-row">
               <a class="primary" href="#browse" data-tab-jump="browse">Browse concerts</a>
               <a class="ghost" href="#journal" data-tab-jump="journal">Open journal</a>
             </div>
           </div>
-          <div class="overview-grid">
+          <div class="overview-grid wide">
             <div class="card">
-              <h4>Upcoming favorites</h4>
-              <div id="upcomingFavorites" class="list"></div>
+              <div class="section-header mini">
+                <h4>Happening soon</h4>
+                <span class="pill">Favorites · 0-14 days</span>
+                <a class="ghost small-btn" data-tab-jump="favorites">View all</a>
+              </div>
+              <div id="homeSoon" class="card-row"></div>
             </div>
             <div class="card">
-              <h4>Wishlist highlights</h4>
-              <div id="wishlistHighlights" class="list"></div>
+              <div class="section-header mini">
+                <h4>This month</h4>
+                <span class="pill">Favorites & wishlist · 15-31 days</span>
+                <a class="ghost small-btn" data-tab-jump="favorites">View all</a>
+              </div>
+              <div id="homeMonth" class="card-row"></div>
             </div>
             <div class="card">
-              <h4>Recommended for you</h4>
-              <div id="homeRecommended" class="list"></div>
+              <div class="section-header mini">
+                <h4>Saved for later</h4>
+                <span class="pill">Wishlist</span>
+                <a class="ghost small-btn" data-tab-jump="wishlist">View all</a>
+              </div>
+              <div id="homeLater" class="card-row"></div>
             </div>
             <div class="card">
-              <h4>Notifications</h4>
+              <div class="section-header mini">
+                <h4>Because you like</h4>
+                <span class="pill" id="homeGenreLabel">your genre</span>
+                <a class="ghost small-btn" data-tab-jump="recommendations">View recs</a>
+              </div>
+              <div id="homeRecommended" class="card-row"></div>
+            </div>
+            <div class="card">
+              <div class="section-header mini">
+                <h4>Notifications</h4>
+                <a class="ghost small-btn" data-tab-jump="notifications">View all</a>
+              </div>
               <div id="notificationSnapshot" class="list"></div>
             </div>
           </div>
@@ -313,6 +336,46 @@
     </div>
 
     <div id="globalToast" class="toast"></div>
+
+    <div id="inviteModal" class="modal hidden">
+      <div class="modal-content">
+        <button class="close" data-close>X</button>
+        <h3>Invite a friend</h3>
+        <p class="muted small">Copy and send this via email or chat.</p>
+        <form id="inviteForm" class="stacked">
+          <input type="text" name="friend_name" placeholder="Friend name (optional)" />
+          <input type="email" name="friend_email" placeholder="Friend email (optional)" />
+          <textarea id="inviteMessage" rows="3"></textarea>
+          <div class="card-actions">
+            <button type="button" id="copyInvite" class="primary">Copy message</button>
+            <a id="mailtoInvite" class="ghost" target="_blank" rel="noopener">Open mail client</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="certificateModal" class="modal hidden">
+      <div class="modal-content certificate">
+        <button class="close" data-close>X</button>
+        <div class="cert-body">
+          <div class="cert-header">
+            <div class="logo-dot">TMG</div>
+            <div>
+              <strong>TrackMyGig</strong>
+              <div class="muted small">Certificate of Attendance</div>
+            </div>
+          </div>
+          <h2>Certificate of Attendance</h2>
+          <p id="certText"></p>
+          <div id="certBadges" class="mini-hints"></div>
+          <div class="muted small" id="certId"></div>
+          <div class="card-actions">
+            <button id="copyCertText" class="primary">Copy summary text</button>
+            <button class="ghost" disabled>Download as image (coming soon)</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script type="module" src="./scripts/api.js"></script>
     <script type="module" src="./scripts/dashboard.js"></script>

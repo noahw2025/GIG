@@ -64,6 +64,7 @@ const render = () => {
           <button class="ghost" data-act="share">Invite</button>
           <a class="ghost" href="${f.ticket_url || "#"}" target="_blank" rel="noopener">Book Tickets</a>
           <button class="ghost" data-act="remove">Remove</button>
+          <button class="ghost" data-act="reminder">${isReminderOn(f.id) ? "Reminder on" : "Remind me"}</button>
         </div>
       </div>`;
     })
@@ -94,6 +95,10 @@ listEl?.addEventListener("click", async (e) => {
     const ref = item?.external_id || card.dataset.concert;
     shareLink.value = `${window.location.origin}/dashboard.html?concertId=${encodeURIComponent(ref)}`;
     shareModal.classList.remove("hidden");
+  }
+  if (act === "reminder") {
+    toggleReminder(concertId);
+    loadFavorites();
   }
 });
 
@@ -156,4 +161,26 @@ const formatStatus = (status) => {
   if (code.includes("limited") || code.includes("low")) return { label: "Limited", className: "chip-genre" };
   if (code.includes("available") || code.includes("onsale")) return { label: "Available", className: "chip-positive" };
   return { label: status, className: "chip-muted" };
+};
+
+const reminderKey = "trackmygig_reminders";
+const reminderSettings = () => {
+  try {
+    return JSON.parse(localStorage.getItem(reminderKey) || "{}");
+  } catch {
+    return {};
+  }
+};
+const isReminderOn = (concertId) => Boolean(reminderSettings()[concertId]);
+const toggleReminder = (concertId) => {
+  const settings = reminderSettings();
+  if (settings[concertId]) {
+    delete settings[concertId];
+    localStorage.setItem(reminderKey, JSON.stringify(settings));
+    showToast("Reminder removed");
+    return;
+  }
+  settings[concertId] = { remind_days_before: 2 };
+  localStorage.setItem(reminderKey, JSON.stringify(settings));
+  showToast("Reminder set");
 };

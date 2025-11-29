@@ -4,10 +4,12 @@ const tabButtons = document.querySelectorAll(".tab-btn");
 const panels = document.querySelectorAll(".tab-panel");
 const logoutBtn = document.getElementById("logoutBtn");
 const userEmailEl = document.getElementById("userEmail");
-const upcomingEl = document.getElementById("upcomingFavorites");
-const wishlistHighlightsEl = document.getElementById("wishlistHighlights");
+const soonEl = document.getElementById("homeSoon");
+const monthEl = document.getElementById("homeMonth");
+const laterEl = document.getElementById("homeLater");
 const notificationSnapshotEl = document.getElementById("notificationSnapshot");
 const homeRecommendedEl = document.getElementById("homeRecommended");
+const homeGenreLabel = document.getElementById("homeGenreLabel");
 const addJournalBtn = document.getElementById("addJournalEntry");
 
 requireAuth();
@@ -39,6 +41,7 @@ const loadSelf = async () => {
     const res = await apiGet("/api/auth/me");
     userEmailEl.textContent = res.user.email;
     setAuth(localStorage.getItem("trackmygig_token"), res.user);
+    if (homeGenreLabel) homeGenreLabel.textContent = res.user.favorite_genre || "your genre";
   } catch (err) {
     showToast("Session expired, please log in again.");
     clearAuth();
@@ -46,36 +49,51 @@ const loadSelf = async () => {
   }
 };
 
+const renderRow = (el, items, emptyText) => {
+  if (!el) return;
+  if (!items.length) {
+    el.innerHTML = `<div class="muted">${emptyText}</div>`;
+    return;
+  }
+  el.innerHTML = items
+    .slice(0, 6)
+    .map(
+      (item) => `<div class="mini-card">
+        <div class="pill">${item.genre || "Concert"}</div>
+        <h4>${item.artist || item.title || "Concert"}</h4>
+        <div class="mini-meta">${item.venue || item.location || "Venue TBA"}</div>
+        <div class="mini-meta">${item.date ? formatDate(item.date) : "TBD"}</div>
+        ${item.min_price || item.max_price ? `<div class="mini-meta">${priceLabel(item)}</div>` : ""}
+      </div>`
+    )
+    .join("");
+};
+
+const priceLabel = (ev) => {
+  if (ev.min_price && ev.max_price) return `$${ev.min_price} - $${ev.max_price}`;
+  if (ev.min_price) return `From $${ev.min_price}`;
+  if (ev.max_price) return `Up to $${ev.max_price}`;
+  return "";
+};
+
 const loadSnapshots = async () => {
   try {
     const favorites = (await apiGet("/api/favorites"))?.favorites || [];
-    const upcoming = favorites.filter((f) => f.date && new Date(f.date) > new Date()).slice(0, 3);
-    if (upcomingEl) {
-      upcomingEl.innerHTML =
-        upcoming.length === 0
-          ? `<div class="muted">No upcoming shows yet.</div>`
-          : upcoming
-              .map(
-                (f) => `<div class="mini-meta">
-                  <strong>${f.artist}</strong> · ${f.venue || f.location || "Venue TBA"} · ${f.date ? new Date(f.date).toLocaleDateString() : "TBD"}
-                </div>`
-              )
-              .join("");
-    }
     const wishlist = (await apiGet("/api/wishlist"))?.wishlist || [];
-    if (wishlistHighlightsEl) {
-      const limited = wishlist.slice(0, 3);
-      wishlistHighlightsEl.innerHTML =
-        limited.length === 0
-          ? `<div class="muted">Nothing in your wishlist.</div>`
-          : limited
-              .map(
-                (w) => `<div class="mini-meta">
-                  <strong>${w.artist}</strong> · ${w.venue || w.location || "Venue TBA"} · ${w.date ? new Date(w.date).toLocaleDateString() : "TBD"}
-                </div>`
-              )
-              .join("");
-    }
+
+    const now = new Date();
+    const inDays = (d) => Math.floor((new Date(d) - now) / (1000 * 60 * 60 * 24));
+
+    const soon = favorites.filter((f) => f.date && inDays(f.date) >= 0 && inDays(f.date) <= 14);
+    const month = favorites
+      .filter((f) => f.date && inDays(f.date) >= 15 && inDays(f.date) <= 31)
+      .concat(wishlist.filter((w) => w.date && inDays(w.date) >= 15 && inDays(w.date) <= 31));
+    const later = wishlist.filter((w) => !w.date || inDays(w.date) > 31);
+
+    renderRow(soonEl, soon, "No upcoming shows in the next 2 weeks.");
+    renderRow(monthEl, month, "No shows later this month.");
+    renderRow(laterEl, later, "Nothing saved for later yet.");
+
     const notifications = (await apiGet("/api/notifications"))?.notifications || [];
     if (notificationSnapshotEl) {
       const snap = notifications.slice(0, 3);
@@ -92,7 +110,6 @@ const loadSnapshots = async () => {
               .join("");
     }
   } catch (err) {
-    // ignore snapshot errors to avoid blocking load
     console.error("Snapshot load failed", err);
   }
 };

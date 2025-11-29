@@ -262,6 +262,16 @@ select {
   gap: 10px;
 }
 
+.mini-card {
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .small-btn {
   padding: 8px 10px;
   border-radius: 10px;

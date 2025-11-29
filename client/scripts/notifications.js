@@ -14,24 +14,48 @@ const render = () => {
   const unread = notifications.filter((n) => !n.is_read).length;
   unreadBadge.textContent = unread;
   unreadBadge.classList.toggle("hidden", unread === 0);
+
+  const buckets = {
+    REMINDER: [],
+    PRICE: [],
+    GENERAL: [],
+  };
+  notifications.forEach((n) => {
+    const code = (n.type || "").toUpperCase();
+    if (code === "UPCOMING_SHOW_REMINDER") buckets.REMINDER.push(n);
+    else if (code === "PRICE_DROP" || code === "LOW_TICKETS") buckets.PRICE.push(n);
+    else buckets.GENERAL.push(n);
+  });
+
+  const renderBucket = (title, items) =>
+    `<div class="notification-group">
+      <div class="section-header mini"><h4>${title}</h4></div>
+      ${
+        items.length === 0
+          ? `<div class="notification-card muted">No ${title.toLowerCase()} yet.</div>`
+          : items
+              .map((n) => {
+                const meta = formatType(n.type);
+                return `<div class="notification-card ${n.is_read ? "muted" : ""}">
+                  <div class="row" style="justify-content: space-between; display: flex; align-items: center; gap: 8px;">
+                    <div>
+                      <strong>${n.title}</strong>
+                      ${meta ? `<span class="chip ${meta.className}">${meta.label}</span>` : ""}
+                    </div>
+                    <small>${formatSince(n.created_at)}</small>
+                  </div>
+                  <div>${n.message}</div>
+                </div>`;
+              })
+              .join("")
+      }
+    </div>`;
+
   const content =
     notifications.length === 0
       ? `<div class="notification-card muted">No notifications yet.</div>`
-      : notifications
-          .map((n) => {
-            const meta = formatType(n.type);
-            return `<div class="notification-card ${n.is_read ? "muted" : ""}">
-              <div class="row" style="justify-content: space-between; display: flex; align-items: center; gap: 8px;">
-                <div>
-                  <strong>${n.title}</strong>
-                  ${meta ? `<span class="chip ${meta.className}">${meta.label}</span>` : ""}
-                </div>
-                <small>${formatSince(n.created_at)}</small>
-              </div>
-              <div>${n.message}</div>
-            </div>`;
-          })
-          .join("");
+      : renderBucket("Reminders", buckets.REMINDER) + renderBucket("Price changes", buckets.PRICE) + renderBucket("General updates", buckets.GENERAL);
+
   if (listEl) listEl.innerHTML = content;
   if (feedEl) feedEl.innerHTML = content;
 };
