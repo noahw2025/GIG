@@ -11,6 +11,7 @@ const notificationSnapshotEl = document.getElementById("notificationSnapshot");
 const homeRecommendedEl = document.getElementById("homeRecommended");
 const homeGenreLabel = document.getElementById("homeGenreLabel");
 const addJournalBtn = document.getElementById("addJournalEntry");
+const themeToggle = document.getElementById("themeToggle");
 
 requireAuth();
 
@@ -130,8 +131,26 @@ addJournalBtn?.addEventListener("click", () => {
   document.getElementById("journalModal").classList.remove("hidden");
 });
 
+const applyTheme = (mode) => {
+  document.body.classList.toggle("theme-light", mode === "light");
+  if (themeToggle) themeToggle.textContent = mode === "light" ? "Dark mode" : "Light mode";
+};
+
+const initTheme = () => {
+  const saved = localStorage.getItem("trackmygig_theme") || "dark";
+  applyTheme(saved);
+};
+
+themeToggle?.addEventListener("click", () => {
+  const current = document.body.classList.contains("theme-light") ? "light" : "dark";
+  const next = current === "light" ? "dark" : "light";
+  localStorage.setItem("trackmygig_theme", next);
+  applyTheme(next);
+});
+
 loadSelf();
 loadSnapshots();
+initTheme();
 
 const renderRecommendedHome = (events) => {
   if (!homeRecommendedEl) return;

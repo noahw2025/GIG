@@ -1,6 +1,7 @@
 import { apiDelete, apiGet, apiPost, formatDate, showToast } from "./api.js";
 
 const listEl = document.getElementById("wishlistList");
+let sharePopover = null;
 
 let wishlist = [];
 
@@ -46,9 +47,9 @@ const render = () => {
           ${price ? `<span>${price}</span>` : ""}
           ${mapLink ? `<a class="ghost small-btn" href="${mapLink}" target="_blank" rel="noopener">Map</a>` : ""}
         </div>
-        <div class="actions">
+        <div class="card-actions">
           <button class="primary" data-act="favorite">Move to Favorites</button>
-          <a class="ghost" href="${w.ticket_url || "#"}" target="_blank" rel="noopener">Book Tickets</a>
+          <a class="primary" href="${w.ticket_url || "#"}" target="_blank" rel="noopener">Book Tickets</a>
           <button class="ghost" data-act="share">Share</button>
           <button class="ghost" data-act="remove">Remove</button>
         </div>
@@ -84,17 +85,7 @@ listEl?.addEventListener("click", async (e) => {
   }
 
   if (act === "share") {
-    const url = `${window.location.origin}/dashboard.html?concertId=${encodeURIComponent(item.external_id)}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: item.title || item.artist, text: "Check this show", url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      showToast("Link copied!");
-    } catch {
-      showToast("Could not share right now.");
-    }
+    handleShare(item, card);
   }
 });
 
@@ -115,4 +106,43 @@ const formatStatus = (status) => {
   if (code.includes("limited") || code.includes("low")) return { label: "Limited", className: "chip-genre" };
   if (code.includes("available") || code.includes("onsale")) return { label: "Available", className: "chip-positive" };
   return { label: status, className: "chip-muted" };
+};
+
+const handleShare = (item, card) => {
+  const url = `${window.location.origin}/dashboard.html?concertId=${encodeURIComponent(item.external_id)}`;
+  if (sharePopover) {
+    sharePopover.remove();
+    sharePopover = null;
+  }
+  const menu = document.createElement("div");
+  menu.className = "share-menu";
+  menu.innerHTML = `
+    <button class="ghost" data-share="copy">Copy link</button>
+    <button class="ghost" data-share="device">Share via device</button>
+    <button class="ghost" data-share="invite">Invite a friend...</button>
+  `;
+  card.appendChild(menu);
+  sharePopover = menu;
+  menu.addEventListener("click", async (e) => {
+    const action = e.target.dataset.share;
+    if (!action) return;
+    if (action === "copy") {
+      await navigator.clipboard.writeText(url);
+      showToast("Link copied!");
+    }
+    if (action === "device" && navigator.share) {
+      await navigator.share({ title: item.title || item.artist, text: "Check this show", url });
+    }
+    if (action === "invite") {
+      const inviteModal = document.getElementById("inviteModal");
+      const inviteMsg = document.getElementById("inviteMessage");
+      const mailto = document.getElementById("mailtoInvite");
+      if (inviteModal && inviteMsg) {
+        const msg = `I'm thinking of going to ${item.artist || item.title || "this show"} on ${formatDate(item.date)}. Link: ${url}`;
+        inviteMsg.value = msg;
+        mailto.href = `mailto:?subject=Join me at a show&body=${encodeURIComponent(msg)}`;
+        inviteModal.classList.remove("hidden");
+      }
+    }
+  });
 };

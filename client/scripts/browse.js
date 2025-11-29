@@ -4,8 +4,10 @@ const searchForm = document.getElementById("searchForm");
 const searchResultsEl = document.getElementById("searchResults");
 const detailsModal = document.getElementById("detailsModal");
 const detailsBody = document.getElementById("detailsBody");
+let sharePopover = null;
 
 const eventCache = new Map();
+const reminderKey = "trackmygig_reminders";
 
 const renderEvents = (container, events, emptyLabel) => {
   container.innerHTML =
@@ -48,10 +50,20 @@ export const cacheEvent = (ev) => {
   eventCache.set(ev.external_id, ev);
 };
 
-export const openDetails = (ev) => {
+const fetchVenueShows = async (venue, location) => {
+  try {
+    const res = await apiGet(`/api/concerts/search?keyword=${encodeURIComponent(venue || "")}&city=${encodeURIComponent(location || "")}`);
+    return res.events || [];
+  } catch {
+    return [];
+  }
+};
+
+export const openDetails = async (ev) => {
   const price = formatPriceRange(ev);
   const status = formatStatus(ev.ticket_status);
   const mapLink = buildMapLink(ev);
+  const venueShows = ev.venue ? await fetchVenueShows(ev.venue, ev.location) : [];
   detailsBody.innerHTML = `
     <div class="modal-head">
       <div>
@@ -68,6 +80,28 @@ export const openDetails = (ev) => {
       <h4>Venue & Map</h4>
       <p>${ev.venue || ev.location || "TBD"}</p>
       ${mapLink ? `<a class="ghost" href="${mapLink}" target="_blank" rel="noopener">Open in Maps</a>` : ""}
+      ${
+        mapLink
+          ? `<div class="modal-map"><iframe title="map" src="https://www.google.com/maps?q=${encodeURIComponent(
+              `${ev.venue || ""} ${ev.location || ""}`
+            )}&output=embed" width="100%" height="200" style="border:0;" loading="lazy"></iframe></div>`
+          : ""
+      }
+      ${
+        venueShows.length
+          ? `<div class="mini-meta">Upcoming at this venue:</div>
+            <div class="card-row">${venueShows
+              .slice(0, 3)
+              .map(
+                (v) => `<div class="mini-card">
+                  <div class="pill">${v.genre || "Concert"}</div>
+                  <strong>${v.artist || v.title || "Concert"}</strong>
+                  <div class="mini-meta">${v.date ? formatDate(v.date) : "TBD"}</div>
+                </div>`
+              )
+              .join("")}</div>`
+          : ""
+      }
     </div>
     <div class="modal-section">
       <h4>Event details</h4>
@@ -79,6 +113,7 @@ export const openDetails = (ev) => {
       <button class="ghost" data-action="details" data-ext="${ev.external_id}">Details</button>
       <a class="primary" href="${ev.ticket_url}" target="_blank">Book tickets</a>
       <button class="ghost subtle" data-action="share" data-ext="${ev.external_id}">Share</button>
+      <button class="ghost" data-action="reminder" data-ext="${ev.external_id}">${isReminderOn(ev.id) ? "Reminder on" : "Remind me"}</button>
     </div>
   `;
   cacheEvent(ev);
@@ -109,31 +144,47 @@ const handleWishlist = async (extId) => {
   }
 };
 
-const handleShare = async (extId) => {
+const handleShare = async (extId, anchorEl) => {
   const payload = eventCache.get(extId);
   if (!payload) return;
   const url = `${window.location.origin}/dashboard.html?concertId=${encodeURIComponent(payload.external_id)}`;
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: payload.title || payload.artist, text: "Check this show", url });
-      return;
+  if (sharePopover) {
+    sharePopover.remove();
+    sharePopover = null;
+  }
+  const menu = document.createElement("div");
+  menu.className = "share-menu";
+  menu.innerHTML = `
+    <button class="ghost" data-share="copy">Copy link</button>
+    <button class="ghost" data-share="device">Share via device</button>
+    <button class="ghost" data-share="invite">Invite a friend...</button>
+  `;
+  anchorEl?.parentElement?.appendChild(menu);
+  sharePopover = menu;
+  menu.addEventListener("click", async (e) => {
+    const action = e.target.dataset.share;
+    if (!action) return;
+    if (action === "copy") {
+      await navigator.clipboard.writeText(url);
+      showToast("Link copied!");
     }
-    await navigator.clipboard.writeText(url);
-    showToast("Link copied!");
-  } catch {
-    showToast("Could not share right now.");
-  }
-  const inviteModal = document.getElementById("inviteModal");
-  const inviteMsg = document.getElementById("inviteMessage");
-  const mailto = document.getElementById("mailtoInvite");
-  if (inviteModal && inviteMsg) {
-    const msg = `I'm thinking of going to ${payload.artist || payload.title || "this show"} at ${payload.venue || payload.location || "a venue"} on ${formatDate(
-      payload.date
-    )}. Here's the link: ${url}. Want to come?`;
-    inviteMsg.value = msg;
-    mailto.href = `mailto:?subject=Join me at a show&body=${encodeURIComponent(msg)}`;
-    inviteModal.classList.remove("hidden");
-  }
+    if (action === "device" && navigator.share) {
+      await navigator.share({ title: payload.title || payload.artist, text: "Check this show", url });
+    }
+    if (action === "invite") {
+      const inviteModal = document.getElementById("inviteModal");
+      const inviteMsg = document.getElementById("inviteMessage");
+      const mailto = document.getElementById("mailtoInvite");
+      if (inviteModal && inviteMsg) {
+        const msg = `I'm thinking of going to ${payload.artist || payload.title || "this show"} at ${payload.venue || payload.location || "a venue"} on ${formatDate(
+          payload.date
+        )}. Here's the link: ${url}. Want to come?`;
+        inviteMsg.value = msg;
+        mailto.href = `mailto:?subject=Join me at a show&body=${encodeURIComponent(msg)}`;
+        inviteModal.classList.remove("hidden");
+      }
+    }
+  });
 };
 
 const formatPriceRange = (ev) => {
@@ -158,6 +209,27 @@ const buildMapLink = (ev) => {
   const query = `${venue} ${loc}`.trim();
   if (!query) return "";
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+};
+
+const reminderSettings = () => {
+  try {
+    return JSON.parse(localStorage.getItem(reminderKey) || "{}");
+  } catch {
+    return {};
+  }
+};
+const isReminderOn = (concertId) => Boolean(reminderSettings()[concertId]);
+const toggleReminder = (concertId) => {
+  const settings = reminderSettings();
+  if (settings[concertId]) {
+    delete settings[concertId];
+    localStorage.setItem(reminderKey, JSON.stringify(settings));
+    showToast("Reminder removed");
+    return;
+  }
+  settings[concertId] = { remind_days_before: 2 };
+  localStorage.setItem(reminderKey, JSON.stringify(settings));
+  showToast("Reminder set");
 };
 
 searchForm?.addEventListener("submit", async (e) => {
@@ -199,7 +271,10 @@ document.addEventListener("profile-updated", () => {
       handleWishlist(extId);
     }
     if (e.target.dataset.action === "share") {
-      handleShare(extId);
+      handleShare(extId, e.target);
+    }
+    if (e.target.dataset.action === "reminder") {
+      toggleReminder(extId);
     }
   });
 });

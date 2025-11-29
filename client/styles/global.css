@@ -26,6 +26,21 @@ body {
   min-height: 100vh;
 }
 
+.theme-light {
+  --bg: #f5f7fb;
+  --panel: #ffffff;
+  --card: #ffffff;
+  --card-strong: #f1f5f9;
+  --text: #0f172a;
+  --muted: #475569;
+  --primary: #4f46e5;
+  --primary-strong: #7c3aed;
+  --accent: #06b6d4;
+  --border: #e2e8f0;
+  background: radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.08), transparent 25%),
+    radial-gradient(circle at 70% 0%, rgba(6, 182, 212, 0.1), transparent 26%), var(--bg);
+}
+
 h1,
 h2,
 h3,
@@ -43,6 +58,7 @@ input,
 textarea,
 select {
   font-family: inherit;
+  text-align: center;
 }
 
 .primary {

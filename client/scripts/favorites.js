@@ -9,6 +9,7 @@ const journalForm = document.getElementById("journalForm");
 const shareModal = document.getElementById("shareModal");
 const shareLink = document.getElementById("shareLink");
 const copyShare = document.getElementById("copyShare");
+let sharePopover = null;
 
 let favorites = [];
 
@@ -58,11 +59,12 @@ const render = () => {
           ${mapLink ? `<a class="ghost small-btn" href="${mapLink}" target="_blank" rel="noopener">Map</a>` : ""}
         </div>
         ${reviewBlock}
-        <div class="actions">
+        <div class="card-actions">
           <button class="primary" data-act="review">Review this show</button>
           <button class="ghost" data-act="journal">Log in Journal</button>
-          <button class="ghost" data-act="share">Invite</button>
-          <a class="ghost" href="${f.ticket_url || "#"}" target="_blank" rel="noopener">Book Tickets</a>
+          <button class="ghost" data-act="details">Details</button>
+          <a class="primary" href="${f.ticket_url || "#"}" target="_blank" rel="noopener">Book Tickets</a>
+          <button class="ghost subtle" data-act="share">Share</button>
           <button class="ghost" data-act="remove">Remove</button>
           <button class="ghost" data-act="reminder">${isReminderOn(f.id) ? "Reminder on" : "Remind me"}</button>
         </div>
@@ -93,8 +95,7 @@ listEl?.addEventListener("click", async (e) => {
   if (act === "share") {
     const item = favorites.find((x) => String(x.favorite_id) === String(favoriteId));
     const ref = item?.external_id || card.dataset.concert;
-    shareLink.value = `${window.location.origin}/dashboard.html?concertId=${encodeURIComponent(ref)}`;
-    shareModal.classList.remove("hidden");
+    handleShare(ref, card);
   }
   if (act === "reminder") {
     toggleReminder(concertId);
@@ -183,4 +184,43 @@ const toggleReminder = (concertId) => {
   settings[concertId] = { remind_days_before: 2 };
   localStorage.setItem(reminderKey, JSON.stringify(settings));
   showToast("Reminder set");
+};
+
+const handleShare = (externalId, card) => {
+  const url = `${window.location.origin}/dashboard.html?concertId=${encodeURIComponent(externalId)}`;
+  if (sharePopover) {
+    sharePopover.remove();
+    sharePopover = null;
+  }
+  const menu = document.createElement("div");
+  menu.className = "share-menu";
+  menu.innerHTML = `
+    <button class="ghost" data-share="copy">Copy link</button>
+    <button class="ghost" data-share="device">Share via device</button>
+    <button class="ghost" data-share="invite">Invite a friend...</button>
+  `;
+  card.appendChild(menu);
+  sharePopover = menu;
+  menu.addEventListener("click", async (e) => {
+    const action = e.target.dataset.share;
+    if (!action) return;
+    if (action === "copy") {
+      await navigator.clipboard.writeText(url);
+      showToast("Link copied!");
+    }
+    if (action === "device" && navigator.share) {
+      await navigator.share({ title: "Concert", text: "Check this show", url });
+    }
+    if (action === "invite") {
+      const inviteModal = document.getElementById("inviteModal");
+      const inviteMsg = document.getElementById("inviteMessage");
+      const mailto = document.getElementById("mailtoInvite");
+      if (inviteModal && inviteMsg) {
+        const msg = `I'm thinking of going to this show. Here's the link: ${url}. Want to come?`;
+        inviteMsg.value = msg;
+        mailto.href = `mailto:?subject=Join me at a show&body=${encodeURIComponent(msg)}`;
+        inviteModal.classList.remove("hidden");
+      }
+    }
+  });
 };

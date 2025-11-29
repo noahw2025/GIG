@@ -17,6 +17,8 @@
   border-radius: var(--radius);
   padding: 22px;
   width: min(640px, 92vw);
+  max-height: 90vh;
+  overflow: auto;
   position: relative;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);

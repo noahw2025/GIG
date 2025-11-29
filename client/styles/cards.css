@@ -75,6 +75,7 @@
   justify-content: center;
   height: 44px;
   border-radius: 12px;
+  text-align: center;
 }
 
 .ghost.subtle {
