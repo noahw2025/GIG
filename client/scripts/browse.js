@@ -7,7 +7,6 @@ const detailsBody = document.getElementById("detailsBody");
 let sharePopover = null;
 
 const eventCache = new Map();
-const reminderKey = "trackmygig_reminders";
 
 const renderEvents = (container, events, emptyLabel) => {
   container.innerHTML =
@@ -64,6 +63,7 @@ export const openDetails = async (ev) => {
   const status = formatStatus(ev.ticket_status);
   const mapLink = buildMapLink(ev);
   const venueShows = ev.venue ? await fetchVenueShows(ev.venue, ev.location) : [];
+  const supabaseUrl = "https://ugldbwwpjcjtfhlpxbip.supabase.co"; // existing project URL
   detailsBody.innerHTML = `
     <div class="modal-head">
       <div>
@@ -107,16 +107,56 @@ export const openDetails = async (ev) => {
       <h4>Event details</h4>
       <p>${ev.description || "No description provided."}</p>
     </div>
+    <div class="modal-section">
+      <div class="card-actions">
+        <button id="artist-summary-btn" class="ghost">✨ Artist & Event Summary</button>
+      </div>
+      <div id="artist-summary-text" class="ai-summary-text"></div>
+    </div>
     <div class="card-actions">
       <button class="primary" data-action="favorite" data-ext="${ev.external_id}">Add to Favorites</button>
       <button class="ghost" data-action="wishlist" data-ext="${ev.external_id}">Add to Wishlist</button>
       <button class="ghost" data-action="details" data-ext="${ev.external_id}">Details</button>
       <a class="primary" href="${ev.ticket_url}" target="_blank">Book tickets</a>
       <button class="ghost subtle" data-action="share" data-ext="${ev.external_id}">Share</button>
-      <button class="ghost" data-action="reminder" data-ext="${ev.external_id}">${isReminderOn(ev.id) ? "Reminder on" : "Remind me"}</button>
     </div>
   `;
   cacheEvent(ev);
+  // Wire artist summary button
+  const artistBtn = document.getElementById("artist-summary-btn");
+  const artistText = document.getElementById("artist-summary-text");
+  if (artistBtn && artistText) {
+    artistText.innerText = "";
+    artistBtn.onclick = async () => {
+      artistText.innerText = "Generating...";
+      try {
+        const res = await fetch(`${supabaseUrl}/functions/v1/artist-summary`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            artist: ev.artist || ev.title,
+            event: {
+              title: ev.title,
+              venue: ev.venue,
+              location: ev.location,
+              date: ev.date,
+              genre: ev.genre,
+              description: ev.description,
+            },
+          }),
+        });
+        if (!res.ok) {
+          artistText.innerText = "Error generating summary.";
+          return;
+        }
+        const data = await res.json();
+        artistText.innerText = data.summary || "No summary available.";
+      } catch {
+        artistText.innerText = "Error generating summary.";
+      }
+    };
+  }
+
   detailsModal.classList.remove("hidden");
 };
 
@@ -211,27 +251,6 @@ const buildMapLink = (ev) => {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 };
 
-const reminderSettings = () => {
-  try {
-    return JSON.parse(localStorage.getItem(reminderKey) || "{}");
-  } catch {
-    return {};
-  }
-};
-const isReminderOn = (concertId) => Boolean(reminderSettings()[concertId]);
-const toggleReminder = (concertId) => {
-  const settings = reminderSettings();
-  if (settings[concertId]) {
-    delete settings[concertId];
-    localStorage.setItem(reminderKey, JSON.stringify(settings));
-    showToast("Reminder removed");
-    return;
-  }
-  settings[concertId] = { remind_days_before: 2 };
-  localStorage.setItem(reminderKey, JSON.stringify(settings));
-  showToast("Reminder set");
-};
-
 searchForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
   const params = new URLSearchParams(new FormData(searchForm));
@@ -272,9 +291,6 @@ document.addEventListener("profile-updated", () => {
     }
     if (e.target.dataset.action === "share") {
       handleShare(extId, e.target);
-    }
-    if (e.target.dataset.action === "reminder") {
-      toggleReminder(extId);
     }
   });
 });

@@ -60,6 +60,11 @@
   margin: 0 0 6px 0;
 }
 
+.ai-summary-text {
+  margin-top: 8px;
+  color: var(--text);
+}
+
 .modal .close {
   position: absolute;
   top: 10px;

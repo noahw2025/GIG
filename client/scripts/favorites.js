@@ -1,4 +1,5 @@
 import { apiDelete, apiGet, apiPost, apiPut, formatDate, showToast } from "./api.js";
+import { openDetails, cacheEvent } from "./browse.js";
 import { loadJournal } from "./journal.js";
 
 const listEl = document.getElementById("favoritesList");
@@ -66,7 +67,6 @@ const render = () => {
           <a class="primary" href="${f.ticket_url || "#"}" target="_blank" rel="noopener">Book Tickets</a>
           <button class="ghost subtle" data-act="share">Share</button>
           <button class="ghost" data-act="remove">Remove</button>
-          <button class="ghost" data-act="reminder">${isReminderOn(f.id) ? "Reminder on" : "Remind me"}</button>
         </div>
       </div>`;
     })
@@ -97,9 +97,12 @@ listEl?.addEventListener("click", async (e) => {
     const ref = item?.external_id || card.dataset.concert;
     handleShare(ref, card);
   }
-  if (act === "reminder") {
-    toggleReminder(concertId);
-    loadFavorites();
+  if (act === "details") {
+    const item = favorites.find((x) => String(x.favorite_id) === String(favoriteId));
+    if (item) {
+      cacheEvent(item);
+      openDetails(item);
+    }
   }
 });
 
